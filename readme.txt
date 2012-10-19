@@ -28,5 +28,5 @@ php-template files.
 If you enjoy this framework, please let other people know about it and spread it along.
 
 For the latest version, please visit:
-http://purpletest.code-monkey.se
+http://test.code-monkey.se
 
