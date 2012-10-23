@@ -117,6 +117,34 @@
 		}
 		
 		/**
+		 * AssertIsEmpty: Will succeed if passed argument is empty.
+		 * 
+		 * @param:$e:expression: Expression to be evaluated.
+		 * @param:$test_name:string: Name to identify the test with.
+		 * If None given, the name of the test will be the number of
+		 * when it was preformed in the suite.
+		 * 
+		 * @return:void
+		 */
+		public function AssertIsEmpty($e, $test_name = false) {
+			$result[$this->GetTestName($test_name)] = array(empty($e), var_export($e, true), "Empty");
+		}
+		
+		/**
+		 * AssertIsNotEmpty: Will succeed if passed argument is not empty.
+		 * 
+		 * @param:$e:expression: Expression to be evaluated.
+		 * @param:$test_name:string: Name to identify the test with.
+		 * If None given, the name of the test will be the number of
+		 * when it was preformed in the suite.
+		 * 
+		 * @return:void
+		 */
+		public function AssertIsNotEmpty($e, $test_name = false){
+			$result[$this->GetTestName($test_name)] = array(!empty($e), var_export($e, true), "Empty");
+		}
+		
+		/**
 		 * AssertIsTrue: Will succeed if passed argument evaluates to true.
 		 * 
 		 * @param:$e:expression: Expression to be evaluated.
