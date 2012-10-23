@@ -100,6 +100,7 @@
 		 */
 		public function AssertIsNull($e, $test_name = false) {
 			$result[$this->GetTestName($test_name)] = array(is_null($e), var_export($e, true), "NULL");
+			$this->m_rgResult['result'][] = $result;
 		}
 		
 		/**
@@ -114,6 +115,7 @@
 		 */
 		public function AssertIsNotNull($e, $test_name = false) {
 			$result[$this->GetTestName($test_name)] = array(!is_null($e), var_export($e, true), "NULL");
+			$this->m_rgResult['result'][] = $result;
 		}
 		
 		/**
@@ -128,6 +130,7 @@
 		 */
 		public function AssertIsEmpty($e, $test_name = false) {
 			$result[$this->GetTestName($test_name)] = array(empty($e), var_export($e, true), "Empty");
+			$this->m_rgResult['result'][] = $result;
 		}
 		
 		/**
@@ -142,6 +145,7 @@
 		 */
 		public function AssertIsNotEmpty($e, $test_name = false){
 			$result[$this->GetTestName($test_name)] = array(!empty($e), var_export($e, true), "Empty");
+			$this->m_rgResult['result'][] = $result;
 		}
 		
 		/**
