@@ -1,7 +1,7 @@
 <?php	
 	/**
 	 * @author: Emil Carlsson
-	 * @version: 0.8 beta
+	 * @version: 1.0 beta
 	 * @license: GNU GENERAL PUBLIC LICENSE v3
 	 * @copyright:2012
 	 * @contact: emilcarlsson81@gmail.com
@@ -424,6 +424,44 @@
 			$result[$this->GetTestName($test_name)] = array ($res_val, var_export($e1, true), 
 				"is not identical to ". var_export($e2, true));
 			
+			$this->m_rgResult['result'][] = $result;
+		}
+		
+		/**
+		 * AssertInArray: Method to see if a value can be found in an array.
+		 * 
+		 * @param:$needle:string The information to search the array for.
+		 * @param:$haystack:array The array to search the value for.
+		 * 
+		 * @return:void
+		 */
+		public function AssertInArray($needle, $haystack, $test_name = false) {
+			if(in_array($needle, $haystack))
+				$result[$this->GetTestName($test_name)] = array(true, var_export($needle, true),
+					"could be found in supplied array");
+			else 
+				$result[$this->GetTestName($test_name)] = array(false, var_export($needle, true),
+					"could be found in supplied array");
+
+			$this->m_rgResult['result'][] = $result;
+		}
+		
+		/**
+		 * AssertNotInArray: Method to see if a value can be found in an array.
+		 * 
+		 * @param:$needle:string The information to search the array for.
+		 * @param:$haystack:array The array to search the value for.
+		 * 
+		 * @return:void
+		 */
+		public function AssertNotInArray($needle, $haystack, $test_name = false) {
+			if(!in_array($needle, $haystack))
+				$result[$this->GetTestName($test_name)] = array(true, var_export($needle, true),
+					"could not be found in supplied array");
+			else 
+				$result[$this->GetTestName($test_name)] = array(false, var_export($needle, true),
+					"could not be found in supplied array");
+
 			$this->m_rgResult['result'][] = $result;
 		}
 			
