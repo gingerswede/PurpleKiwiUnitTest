@@ -1,7 +1,7 @@
 <?php	
 	/**
 	 * @author: Emil Carlsson
-	 * @version: 1.0 beta
+	 * @version: 0.8 beta
 	 * @license: GNU GENERAL PUBLIC LICENSE v3
 	 * @copyright:2012
 	 * @contact: emilcarlsson81@gmail.com
@@ -464,7 +464,24 @@
 
 			$this->m_rgResult['result'][] = $result;
 		}
-			
+		
+		/**
+		 * AssertFail: Method to add expected faulures to the test.
+		 * 
+		 * @param:$message:string Message to be printed. Defaulted empty string.
+		 * @param:$failure:bool Indicates if to be concidered a success or failure. Default as success test with value true.
+		 * @param:$test_name:string Name of the test to be stored for the test evaluation.
+		 * 
+		 * @return:void
+		 */
+		public function AssertFail($message = NULL, $success = true, $test_name = false) {
+			$result[$this->GetTestName($test_name)] = array(
+				$success, $message, 'AssertFail'
+			);
+				
+			$this->m_rgResult['result'][] = $result;
+		}
+		
 		/**
 		 * GetResult:Method to retrieve the results of your test.
 		 * 
