@@ -73,7 +73,7 @@
 	
     class CPurpleKiwiTestLite {
 
-		private $m_rgResult;
+		protected $m_rgResult;
 		
 		/**
 		 * __construct: A small framework to make testing easy.
@@ -144,7 +144,7 @@
 		 * @return:void
 		 */
 		public function AssertIsNotEmpty($e, $test_name = false){
-			$result[$this->GetTestName($test_name)] = array(!empty($e), var_export($e, true), "Empty");
+			$result[$this->GetTestName($test_name)] = array(!empty($e), var_export($e, true), "not Empty");
 			$this->m_rgResult['result'][] = $result;
 		}
 		
@@ -204,7 +204,7 @@
 		 * @return:void
 		 */
 		public function AssertIsObject($e, $test_name = false) {								
-			$result[$this->GetTestName($test_name)] = array(is_object($e), var_export($e, true), "object");			
+			$result[$this->GetTestName($test_name)] = array(is_object($e), get_class($e), "object");			
 			$this->m_rgResult['result'][] = $result;
 		}
 		
@@ -224,6 +224,19 @@
 		}
 		
 		/**
+		 * AssertIsNotArray: Will succeed if passed argument isn't an array.
+		 * 
+		 * @param:$e: Parameter to be evaluated.
+		 * @param:$test_name:string Name to identify the test with.
+		 * 
+		 * @return:void
+		 */
+		public function AssertIsNotArray($e, $test_name = false) {
+			$result[$this->GetTestName($test_name)] = array(!is_array($e), var_export($e, true), "not Array");			
+			$this->m_rgResult['result'][] = $result;
+		}
+		
+		/**
 		 * AssertIsInteger: Will succeed if passed argument is an integer.
 		 * 
 		 * @param:$e:Int Integer to be tested.
@@ -234,12 +247,25 @@
 		 * @return:void
 		 */	
 		public function AssertIsInteger($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(is_int($e), var_export($e, true), "integer");			
+			$result[$this->GetTestName($test_name)] = array(is_int($e), var_export($e, true), "Integer");			
 			$this->m_rgResult['result'][] = $result;
 		}
 		
 		/**
-		 * AssertIsString: Will succeed if passed argument is an integer.
+		 * AssertIsNotInteger: Will succeed if passed argument isn't an integer.
+		 * 
+		 * @param:$e:var Value to be tested.
+		 * @param:$test_name:string Name to identify the test with
+		 * 
+		 * @return:void
+		 */
+		public function AssertIsNotInteger($e, $test_name = false) {
+			$result[$this->GetTestName($test_name)] = array(!is_int($e), var_export($e, true), "not Integer");			
+			$this->m_rgResult['result'][] = $result;
+		}
+		
+		/**
+		 * AssertIsString: Will succeed if passed argument is an string.
 		 * 
 		 * @param:$e:string String to be tested.
 		 * @param:$test_name:string Name to identify the test with. 
@@ -254,6 +280,21 @@
 		}
 		
 		/**
+		 * AssertIsNotString: Will succeed if passed argument isn't a string.
+		 * 
+		 * @param:$e Parameter to be tested.
+		 * @param:$test_name:string Name to identify the test with. 
+		 * If none given, the name of the test will be it's number in 
+		 * order it is preformed.
+		 * 
+		 * @return:void
+		 */	
+		public function AssertIsNotString($e, $test_name = false) {
+			$result[$this->GetTestName($test_name)] = array(!is_string($e), var_export($e, true), "not string");			
+			$this->m_rgResult['result'][] = $result;
+		}
+		
+		/**
 		 * AssertIsDouble: Will succeed if passed argument is a double.
 		 * 
 		 * @param:$e:double Number to be tested.
@@ -264,7 +305,22 @@
 		 * @return:void
 		 */	
 		public function AssertIsDouble($e, $test_name = false) {	
-			$result[$this->GetTestName($test_name)] = array(is_float($e), var_export($e, true), "double");
+			$result[$this->GetTestName($test_name)] = array(is_double($e), var_export($e, true), "double");
+			$this->m_rgResult['result'][] = $result;
+		}
+		
+		/**
+		 * AssertIsDouble: Will succeed if passed argument isn't a double.
+		 * 
+		 * @param:$e:double Number to be tested.
+		 * @param:$test_name:string Name to identify the test with. 
+		 * If none given, the name of the test will be it's number in 
+		 * order it is preformed.
+		 * 
+		 * @return:void
+		 */	
+		public function AssertIsNotDouble($e, $test_name = false) {	
+			$result[$this->GetTestName($test_name)] = array(!is_double($e), var_export($e, true), "not double");
 			$this->m_rgResult['result'][] = $result;
 		}
 		
@@ -281,7 +337,22 @@
 		public function AssertIsFloat($e, $test_name = false) {
 			$result[$this->GetTestName($test_name)] = array(is_float($e), var_export($e, true), "float");
 			$this->m_rgResult['result'][] = $result;
-		}		
+		}
+		
+		/**
+		 * AssertIsFloat: Will succeed if passed argument isn't a float.
+		 * 
+		 * @param:$e:float Number to be tested.
+		 * @param:$test_name:string Name to identify the test with. 
+		 * If none given, the name of the test will be it's number in 
+		 * order it is preformed.
+		 * 
+		 * @return:void
+		 */			
+		public function AssertIsNotFloat($e, $test_name = false) {
+			$result[$this->GetTestName($test_name)] = array(!is_float($e), var_export($e, true), "not float");
+			$this->m_rgResult['result'][] = $result;
+		}	
 		
 		/**
 		 * AssertIsGreaterThan: Will succeed if first argument is greater
@@ -513,7 +584,7 @@
 		 * 
 		 * @return:string
 		 */
-		private function GetTestName($name = false) {
+		protected function GetTestName($name = false) {
 			if (!$name) {
 				$c = (array_key_exists('result', $this->m_rgResult) ? (count($this->m_rgResult['result'])) : 0);
 				$name = 'Test number: '. ($c + 1);
