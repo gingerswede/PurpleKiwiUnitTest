@@ -1,7 +1,7 @@
 <?php	
 	/**
 	 * @author: Emil Carlsson
-	 * @version: 0.8 beta
+	 * @version: 1.0 beta
 	 * @license: GNU GENERAL PUBLIC LICENSE v3
 	 * @copyright:2012
 	 * @contact: emilcarlsson81@gmail.com
