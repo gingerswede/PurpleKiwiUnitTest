@@ -1,7 +1,7 @@
 <?php	
 	/**
 	 * @author: Emil Carlsson
-	 * @version: 1.0 beta
+	 * @version: 1.1 beta
 	 * @license: GNU GENERAL PUBLIC LICENSE v3
 	 * @copyright:2012
 	 * @contact: emilcarlsson81@gmail.com
@@ -86,6 +86,8 @@
 			$this->m_rgResult = NULL;
 			$this->m_rgResult['testname'] = $strTestName;
 			$this->m_rgResult['preformed'] = date("Y-m-d - H:i:s (T)");
+			$this->m_rgResult['fail'] = 0;
+			$this->m_rgResult['success'] = 0;
 		}
 		
 		/**
@@ -565,6 +567,15 @@
 			
 			$output = strtolower($output);
 			
+			foreach($this->m_rgResult['result'] as $result) {
+				foreach ($result as $r) {
+					if ($r[0])
+						$this->m_rgResult['success']++;
+					else 
+						$this->m_rgResult['fail']++;
+				}
+			}
+			
 			switch ($output) {
 				case RETURN_ARRAY:
 						return $this->m_rgResult;
@@ -644,7 +655,7 @@
 		 * 
 		 * @return:void
 		 */
-		private function ReturnHTML() {
+		private function ReturnHTML() {			
 			$output = "<html>\n";
 			$output .= "\t<head>\n";
 			$output .= "\t\t<title>Test report - ". date("Y-m-d - H:i:s (T)") ."</title>\n";
@@ -652,10 +663,20 @@
 			$output .= "\t<style type='text/css'>$this->m_style</style>\n";
 			$output .= "\t<body>\n";
 			
-			foreach ($this->m_rgResult as $tests) {				
+			foreach ($this->m_rgResult as $tests) {
+				$successPercent = round(($tests['success']/count($tests['result']))*100,2);
+				$failPercent = round(($tests['fail']/count($tests['result']))*100,2);
+								
 				$output .= "\t\t<div class='content'>\n";
 				$output .= "\t\t\t<h1>Test results: ".$tests['testname']."</h1>\n";
 				$output .= "\t\t\t<h2>Test preformed: ".$tests['preformed']."</h2>\n";
+				$output .= "\t\t\t<div id='percentDisplay'>\n";
+				$output .= "\t\t\t\t<p class='percentText'>Success: $successPercent% | Fail: $failPercent%</p>\n";
+				$output .= "\t\t\t\t<p class='percentText'>Keep the bar green and your code is clean.</p>\n";
+				$output .= "\t\t\t\t<p id='successPercent' style='width:". 500*($successPercent/100) ."px' class='percent'></p>\n";
+				$output .= "\t\t\t\t<p id='failPercent' style='width:". 500*($failPercent/100) ."px' class='percent'></p>\n";
+				$output .= "\t\t\t</div>\n";
+				
 					foreach ($tests['result'] as $value) {
 						foreach ($value as $k => $v) {
 							$output .= "\t\t\t<div class='wrapper'>\n";
@@ -697,7 +718,8 @@
 						}
 						
 						h1 {
-							margin-left: 5px;
+							margin: 10px;
+							text-align: center;
 							color: #000000;
 							font-size: 18px;
 							text-decoration: underline;
@@ -705,7 +727,8 @@
 						}
 						
 						h2 {
-							margin-left: 5px;
+							margin: 5px;
+							text-align: center;
 							color: #000000;
 							font-size: 16px;
 							text-decoration: underline;
@@ -740,10 +763,11 @@
 						
 						.wrapper {
 							background: #FEFEFE;
-							min-width: 400px;
+							min-width: 505px;
 							max-width: 700px;
 							border: #000000 1px solid;
-							margin-left: 10px;
+							margin: auto;
+							margin-top: 10px;
 							min-height: 50px;
 							padding-top: 0;
 						}
@@ -766,8 +790,37 @@
 							font-style: italic;
 						}
 						.content {
-							min-width: 500px;
-							max-width: 980px;				
+							width: 980px;				
 							margin: auto;
+						}
+						.percent {
+							margin: 0; 
+							padding: 0;
+							float: left;
+							height: 20px;
+							text-align: center;
+							font-weight: 600;
+						}
+						#percentDisplay {
+							margin:auto;
+							padding: 3;
+							width: 510px;
+							text-align: center;
+						}
+						#successPercent {
+							border-left: 1px solid #000;
+							border-top:  1px solid #000;
+							border-bottom:  1px solid #000;
+							border-right: 1px dotted #000;
+							background-color: green;
+						}
+						.percentText {
+							margin:2px;
+						}
+						#failPercent {
+							border-right: 1px solid #000;
+							border-top:  1px solid #000;
+							border-bottom:  1px solid #000;
+							background-color: red;
 						}';
     }
