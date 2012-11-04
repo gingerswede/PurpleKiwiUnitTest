@@ -1,7 +1,7 @@
 <?php	
 	/**
 	 * @author: Emil Carlsson
-	 * @version: 1.1 beta
+	 * @version: 2.0
 	 * @license: GNU GENERAL PUBLIC LICENSE v3
 	 * @copyright:2012
 	 * @contact: emilcarlsson81@gmail.com
@@ -57,8 +57,8 @@
 	 * evaluation fails, and succeeds here    *
 	 ******************************************/
 	
-	define("EVALUATION_FAILED", "Evaluation failed.", FALSE);
-    define("EVALUATION_SUCCESS", "Evaluation succeeded", FALSE);
+	define("EVALUATION_FAILED", "Assertion fail.", FALSE);
+    define("EVALUATION_SUCCESS", "Assertion success", FALSE);
 	
 	/********************************************
 	 * 	 WARNING: Do not change in code below.  *
@@ -70,10 +70,13 @@
 	define("RETURN_JSON", "json", TRUE);
 	define("RETURN_HTML", "html", TRUE);
 	define("RETURN_ARRAY", "array", TRUE);
+	define("ASSERT_SUCCESSFUL", 'Assert successful.', TRUE);
+	define("ASSERT_FAILURE", 'Assert failed', TRUE);
 	
     class CPurpleKiwiTestLite {
 
 		protected $m_rgResult;
+		protected $m_testNumber = 0;
 		
 		/**
 		 * __construct: A small framework to make testing easy.
@@ -83,12 +86,18 @@
 		 * @return:void
 		 */		
 		public function __construct($strTestName = "Standard test") {
-			$this->m_rgResult = NULL;
-			$this->m_rgResult['testname'] = $strTestName;
-			$this->m_rgResult['preformed'] = date("Y-m-d - H:i:s (T)");
-			$this->m_rgResult['fail'] = 0;
-			$this->m_rgResult['success'] = 0;
+			$this->m_rgResult = new TestSuite($strTestName);
+			$this->m_testNumber = 1;
 		}
+		
+		//READ THIS IF YOU CHANGE IN THE API:
+		//Constructor of TestResult:
+		//First param = Test name.
+		//Second param = Result of the test.
+		//Third param = Assert type (function name).
+		//Fourth param = Text to go with the result, can take boolean value to fallback on constants.
+		//Fifth param = Expression asserted.
+		//Sixth param = Expression used in comparrison asserts.
 		
 		/**
 		 * AssertIsNull: Will succeed if passed argument evaluates to null.
@@ -98,11 +107,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsNull($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(is_null($e), var_export($e, true), "NULL");
-			$this->m_rgResult['result'][] = $result;
+			$result = is_null($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;
 		}
 		
 		/**
@@ -113,11 +126,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsNotNull($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(!is_null($e), var_export($e, true), "NULL");
-			$this->m_rgResult['result'][] = $result;
+			$result = !is_null($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;
 		}
 		
 		/**
@@ -128,11 +145,15 @@
 		 * If None given, the name of the test will be the number of
 		 * when it was preformed in the suite.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsEmpty($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(empty($e), var_export($e, true), "Empty");
-			$this->m_rgResult['result'][] = $result;
+			$result = empty($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;
 		}
 		
 		/**
@@ -143,11 +164,15 @@
 		 * If None given, the name of the test will be the number of
 		 * when it was preformed in the suite.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsNotEmpty($e, $test_name = false){
-			$result[$this->GetTestName($test_name)] = array(!empty($e), var_export($e, true), "not Empty");
-			$this->m_rgResult['result'][] = $result;
+			$result = !empty($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;
 		}
 		
 		/**
@@ -158,18 +183,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsTrue($e, $test_name = false) {
-    		if ($e === true){
-				$result[$this->GetTestName($test_name)] = array(true, var_export($e, true), "TRUE");
-			}
+    		$result = ($e === true);
 			
-			else {
-				$result[$this->GetTestName($test_name)] = array(false, var_export($e, true), "TRUE");
-			}
-			
-			$this->m_rgResult['result'][] = $result;
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);			
+			return $result;
     	}
 		
 		/**
@@ -180,19 +202,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsFalse($e, $test_name = false) {
-			$result = array();
-			if ($e === false){
-				$result[$this->GetTestName($test_name)] = array(true, var_export($e, true), "FALSE");
-			}
+			$result = ($e === false);
 			
-			else {
-				$result[$this->GetTestName($test_name)] = array(false, var_export($e, true), "FALSE");
-			}
-			
-			$this->m_rgResult['result'][] = $result;
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);			
+			return $result;
 		}
 		
 		/**
@@ -203,11 +221,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
-		public function AssertIsObject($e, $test_name = false) {								
-			$result[$this->GetTestName($test_name)] = array(is_object($e), get_class($e), "object");			
-			$this->m_rgResult['result'][] = $result;
+		public function AssertIsObject($e, $test_name = false) {
+			$result = is_object($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);			
+			return $result;
 		}
 		
 		/**
@@ -218,11 +240,21 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */		
 		public function AssertIsArray($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(is_array($e), var_export($e, true), "Array");			
-			$this->m_rgResult['result'][] = $result;
+			if (is_array($e)) {
+				$this->m_rgResult->Add(
+					new TestResult($this->GetTestName($test_name), TRUE, __FUNCTION__, 'Passed argument is an array.')
+				);
+				return true;
+			}
+			else {
+				$this->m_rgResult->Add(
+					new TestResult($this->GetTestName($test_name), FALSE, __FUNCTION__, 'Passed argument is not an array.')
+				);
+				return false;
+			}
 		}
 		
 		/**
@@ -231,11 +263,21 @@
 		 * @param:$e: Parameter to be evaluated.
 		 * @param:$test_name:string Name to identify the test with.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsNotArray($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(!is_array($e), var_export($e, true), "not Array");			
-			$this->m_rgResult['result'][] = $result;
+			if (!is_array($e)) {
+				$this->m_rgResult->Add(
+					new TestResult($this->GetTestName($test_name), TRUE, __FUNCTION__, 'Passed argument is not an array')
+				);
+				return true;
+			}
+			else {
+				$this->m_rgResult->Add(
+					new TestResult($this->GetTestName($test_name), FALSE, __FUNCTION__, 'Passed argument is an array')
+				);
+				return false;
+			}
 		}
 		
 		/**
@@ -246,11 +288,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */	
 		public function AssertIsInteger($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(is_int($e), var_export($e, true), "Integer");			
-			$this->m_rgResult['result'][] = $result;
+			$result = is_int($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;			
 		}
 		
 		/**
@@ -259,11 +305,15 @@
 		 * @param:$e:var Value to be tested.
 		 * @param:$test_name:string Name to identify the test with
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsNotInteger($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(!is_int($e), var_export($e, true), "not Integer");			
-			$this->m_rgResult['result'][] = $result;
+			$result = !is_int($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;	
 		}
 		
 		/**
@@ -274,11 +324,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */	
 		public function AssertIsString($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(is_string($e), var_export($e, true), "string");			
-			$this->m_rgResult['result'][] = $result;
+			$result = is_string($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;	
 		}
 		
 		/**
@@ -289,11 +343,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */	
 		public function AssertIsNotString($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(!is_string($e), var_export($e, true), "not string");			
-			$this->m_rgResult['result'][] = $result;
+			$result = !is_string($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;	
 		}
 		
 		/**
@@ -304,11 +362,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */	
 		public function AssertIsDouble($e, $test_name = false) {	
-			$result[$this->GetTestName($test_name)] = array(is_double($e), var_export($e, true), "double");
-			$this->m_rgResult['result'][] = $result;
+			$result = is_double($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;	
 		}
 		
 		/**
@@ -319,11 +381,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */	
 		public function AssertIsNotDouble($e, $test_name = false) {	
-			$result[$this->GetTestName($test_name)] = array(!is_double($e), var_export($e, true), "not double");
-			$this->m_rgResult['result'][] = $result;
+			$result = !is_double($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;	
 		}
 		
 		/**
@@ -334,11 +400,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */			
 		public function AssertIsFloat($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(is_float($e), var_export($e, true), "float");
-			$this->m_rgResult['result'][] = $result;
+			$result = is_float($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;	
 		}
 		
 		/**
@@ -349,11 +419,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */			
 		public function AssertIsNotFloat($e, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(!is_float($e), var_export($e, true), "not float");
-			$this->m_rgResult['result'][] = $result;
+			$result = !is_float($e);
+			
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, $result, $e)
+			);
+			return $result;	
 		}	
 		
 		/**
@@ -366,18 +440,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */	
 		public function AssertIsGreaterThan($e1, $e2, $test_name = false) {
-			if ($e1 > $e2)
-				$res_val = true;
-			else
-				$res_val = false;
+			$result = ($e1 > $e2);
 			
-			$result[$this->GetTestName($test_name)] = array ($res_val, var_export($e1, true), 
-				"greater than ". var_export($e2, true));
-			
-			$this->m_rgResult['result'][] = $result;
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, 'Is greater than.', $e1, $e2)
+			);
+			return $result;
 		}
 		
 		/**
@@ -390,18 +461,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */	
 		public function AssertIsLessThan($e1, $e2, $test_name = false) {
-			if ($e1 < $e2)
-				$res_val = true;
-			else
-				$res_val = false;
+			$result = ($e1 < $e2);
 			
-			$result[$this->GetTestName($test_name)] = array ($res_val, var_export($e1, true), 
-				"less than ". var_export($e2, true));
-			
-			$this->m_rgResult['result'][] = $result;
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, 'Is less than.', $e1, $e2)
+			);
+			return $result;
 		}
 		
 		/**
@@ -414,18 +482,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsEqual($e1, $e2, $test_name = false) {
-			if ($e1 == $e2)
-				$res_val = true;
-			else
-				$res_val = false;
+			$result = ($e1 == $e2);
 			
-			$result[$this->GetTestName($test_name)] = array ($res_val, var_export($e1, true), 
-				"equal to ". var_export($e2, true));
-			
-			$this->m_rgResult['result'][] = $result;
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, 'Is equal to.', $e1, $e2)
+			);
+			return $result;
 		}
 		
 		/**
@@ -438,18 +503,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsNotEqual($e1, $e2, $test_name = false) {
-			if ($e1 != $e2)
-				$res_val = true;
-			else
-				$res_val = false;
+			$result = ($e1 != $e2);
 			
-			$result[$this->GetTestName($test_name)] = array ($res_val, var_export($e1, true), 
-				"not equal ". var_export($e2, true));
-			
-			$this->m_rgResult['result'][] = $result;
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, 'Is not equal to.', $e1, $e2)
+			);
+			return $result;
 		}
 		
 		/**
@@ -462,18 +524,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsIdentical($e1, $e2, $test_name = false) {
-			if ($e1 === $e2)
-				$res_val = true;
-			else
-				$res_val = false;
+			$result = ($e1 === $e2);
 			
-			$result[$this->GetTestName($test_name)] = array ($res_val, var_export($e1, true), 
-				"identical to ". var_export($e2, true));
-			
-			$this->m_rgResult['result'][] = $result;
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, 'Is identical to.', $e1, $e2)
+			);
+			return $result;
 		}
 		
 		/**
@@ -486,18 +545,15 @@
 		 * If none given, the name of the test will be it's number in 
 		 * order it is preformed.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertIsNotIdentical($e1, $e2, $test_name = false) {
-			if ($e1 !== $e2)
-				$res_val = true;
-			else
-				$res_val = false;
+			$result = ($e1 !== $e2);
 			
-			$result[$this->GetTestName($test_name)] = array ($res_val, var_export($e1, true), 
-				"is not identical to ". var_export($e2, true));
-			
-			$this->m_rgResult['result'][] = $result;
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $result, __FUNCTION__, 'Is not identical to.', $e1, $e2)
+			);
+			return $result;
 		}
 		
 		/**
@@ -506,17 +562,23 @@
 		 * @param:$needle:string The information to search the array for.
 		 * @param:$haystack:array The array to search the value for.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertInArray($needle, $haystack, $test_name = false) {
-			if(in_array($needle, $haystack))
-				$result[$this->GetTestName($test_name)] = array(true, var_export($needle, true),
-					"could be found in supplied array");
-			else 
-				$result[$this->GetTestName($test_name)] = array(false, var_export($needle, true),
-					"could be found in supplied array");
-
-			$this->m_rgResult['result'][] = $result;
+			if(in_array($needle, $haystack)){
+				$this->m_rgResult->Add(
+					new TestResult($this->GetTestName($test_name), TRUE, __FUNCTION__, 'Could be found in supplied array.', $needle)
+				);
+				
+				return true;
+			}
+			else {
+				$this->m_rgResult->Add(
+					new TestResult($this->GetTestName($test_name), FALSE, __FUNCTION__, 'Could not be found in supplied array.', $needle)
+				);
+				
+				return false;
+			}
 		}
 		
 		/**
@@ -525,17 +587,23 @@
 		 * @param:$needle:string The information to search the array for.
 		 * @param:$haystack:array The array to search the value for.
 		 * 
-		 * @return:void
+		 * @return:bool
 		 */
 		public function AssertNotInArray($needle, $haystack, $test_name = false) {
-			if(!in_array($needle, $haystack))
-				$result[$this->GetTestName($test_name)] = array(true, var_export($needle, true),
-					"could not be found in supplied array");
-			else 
-				$result[$this->GetTestName($test_name)] = array(false, var_export($needle, true),
-					"could not be found in supplied array");
-
-			$this->m_rgResult['result'][] = $result;
+			if(!in_array($needle, $haystack)){
+				$this->m_rgResult->Add(
+					new TestResult($this->GetTestName($test_name), TRUE, __FUNCTION__, 'Could not be found in supplied array.', $needle)
+				);
+				
+				return true;
+			}
+			else {
+				$this->m_rgResult->Add(
+					new TestResult($this->GetTestName($test_name), FALSE, __FUNCTION__, 'Could be found in supplied array.', $needle)
+				);
+				
+				return false;
+			}
 		}
 		
 		/**
@@ -548,11 +616,11 @@
 		 * @return:void
 		 */
 		public function AssertFail($message = NULL, $success = true, $test_name = false) {
-			$result[$this->GetTestName($test_name)] = array(
-				$success, $message, 'AssertFail'
+			$this->m_rgResult->Add(
+				new TestResult($this->GetTestName($test_name), $success, __FUNCTION__, $message)
 			);
 				
-			$this->m_rgResult['result'][] = $result;
+			return $success;
 		}
 		
 		/**
@@ -566,21 +634,11 @@
 		public function GetResult($output = RETURN_HTML) {
 			
 			$output = strtolower($output);
-			
-			foreach($this->m_rgResult['result'] as $result) {
-				foreach ($result as $r) {
-					if ($r[0])
-						$this->m_rgResult['success']++;
-					else 
-						$this->m_rgResult['fail']++;
-				}
-			}
-			
+						
 			switch ($output) {
 				case RETURN_ARRAY:
-						return $this->m_rgResult;
+					return $this->m_rgResult->ToArray();
 					break;
-				
 				default:
 						new CPurpleKiwiView(array($this->m_rgResult), $output);
 					break;
@@ -597,10 +655,9 @@
 		 */
 		protected function GetTestName($name = false) {
 			if (!$name) {
-				$c = (array_key_exists('result', $this->m_rgResult) ? (count($this->m_rgResult['result'])) : 0);
-				$name = 'Test number: '. ($c + 1);
+				$name = 'Test number: '. $this->m_testNumber;
 			}
-					
+			$this->m_testNumber++;
 			return $name;
 		}
 	}
@@ -646,7 +703,11 @@
 		 * @return:void
 		 */
 		private function ReturnJSON() {
-			print json_encode($this->m_rgResult, JSON_FORCE_OBJECT);	
+			//$result = array();
+			foreach ($this->m_rgResult as $suite) {
+				print $suite->ToJSon();
+			}
+			//print json_encode($result, JSON_FORCE_OBJECT);
 		}
 		
 		/**
@@ -664,12 +725,12 @@
 			$output .= "\t<body>\n";
 			
 			foreach ($this->m_rgResult as $tests) {
-				$successPercent = round(($tests['success']/count($tests['result']))*100,2);
-				$failPercent = round(($tests['fail']/count($tests['result']))*100,2);
+				$successPercent = $tests->SuccessPercent();
+				$failPercent = $tests->FailPercent();
 								
 				$output .= "\t\t<div class='content'>\n";
-				$output .= "\t\t\t<h1>Test results: ".$tests['testname']."</h1>\n";
-				$output .= "\t\t\t<h2>Test preformed: ".$tests['preformed']."</h2>\n";
+				$output .= "\t\t\t<h1>Test results: ".$tests->Suitename()."</h1>\n";
+				$output .= "\t\t\t<h2>Test preformed: ".$tests->Performed()."</h2>\n";
 				$output .= "\t\t\t<div id='percentDisplay'>\n";
 				$output .= "\t\t\t\t<p class='percentText'>Success: $successPercent% | Fail: $failPercent%</p>\n";
 				$output .= "\t\t\t\t<p class='percentText'>Keep the bar green and your code is clean.</p>\n";
@@ -677,27 +738,13 @@
 				$output .= "\t\t\t\t<p id='failPercent' style='width:". 500*($failPercent/100) ."px' class='percent'></p>\n";
 				$output .= "\t\t\t</div>\n";
 				
-					foreach ($tests['result'] as $value) {
-						foreach ($value as $k => $v) {
-							$output .= "\t\t\t<div class='wrapper'>\n";
-							
-							if ($v[0])
-								$output .= "\t\t\t\t<div class='win'>\n";
-							else 
-								$output .= "\t\t\t\t<div class='fail'>\n";
-							
-							$output .= "\t\t\t\t\t<h3>". $k ." - $v[2]</h3>\n";
-							$output .= "\t\t\t\t</div>\n";
-							
-							$var_val = str_replace("\n", "<br />\n", $v[1]);
-							
-							if ($v[0])
-								$output .= "\t\t\t\t<p>\n\t\t\t\t\t".EVALUATION_SUCCESS.".\n\t\t\t\t</p>\n\t\t\t\t<p>\n\t\t\t\t\t<span class='value'>$var_val</span> evaluated to $v[2]\n\t\t\t\t</p>\n";
-							else
-								$output .= "\t\t\t\t<p>\n\t\t\t\t\t".EVALUATION_FAILED."\n\t\t\t\t</p>\n\t\t\t\t<p>\n\t\t\t\t\t<span class='value'>$var_val</span> did not evaluate to $v[2].\n\t\t\t\t</p>\n";
-							$output .= "\t\t\t</div>\n";
-						}
-					}				
+				//Not working, why?
+				foreach ($tests as $test) {
+					$output .= "\t\t\t<div class='wrapper'>\n";
+					$output .= $test->ToHTMLString();
+					$output .= "\t\t\t</div>\n";
+				}				
+				
 				$output .= "\t\t\t<h4>End of test.</h4>\n";
 				$output .= "\t\t</div>\n";
 			}
@@ -749,6 +796,7 @@
 							color: #000000;
 							font-size: 12px;
 							font-style: italic;
+							text-align: center;
 						}
 						
 						p {
@@ -823,4 +871,210 @@
 							border-bottom:  1px solid #000;
 							background-color: red;
 						}';
+    }
+
+    /**
+	 * Class to manage testresults.
+	 */
+    class TestResult {
+    	const TEST_NAME = 'testname';
+		const RESULT = 'result';
+		const OPERATOR_ONE = 'operatorone';
+		const OPERATOR_TWO = 'operatortwo';
+		const RESULT_TEXT = 'resulttext';
+		const ASSERT_TYPE = 'asserttype';
+		
+    	private $m_testName;
+    	private $m_result;
+		private $m_operatorOne;
+		private $m_operatorTwo;
+		private $m_resultText;
+		private $m_assertType;
+		
+		/**
+		 * Constructor that initiate a test result object.
+		 *
+		 * @param:$testName:string Name of the test.
+		 * @param:$result:bool True for success, false for failure.
+		 * @param:$resultText:string Text to be printed in html formatting.
+		 * @param:$assertType:string Assert method called.
+		 * @param:$operatorOne:string First operator used in the test.
+		 * @param:$operatorTwo:string Second operator used.
+		 * 
+		 * @return:void
+		 */
+		public function __construct($testName, $result, $assertType, $resultText = false, 
+									$operatorOne = false, $operatorTwo = false) {
+			$this->m_testName = $testName;
+			$this->m_result = $result;
+			$this->m_resultText = $resultText;
+			$this->m_assertType = $assertType;
+			
+			if ($operatorOne) {
+				$this->m_operatorOne = var_export($operatorOne, true);
+			}
+			else {
+				$this->m_operatorOne = false;
+			}
+			if ($operatorTwo) {
+				$this->m_operatorTwo = var_export($operatorTwo, true);
+			}
+			else {
+				$this->m_operatorTwo = false;
+			}
+		}
+		//TODO: Comment the accessors.
+		public function Result() {
+			return $this->m_result;
+		}
+		
+		public function OperatorOne() {
+			return ($this->m_operatorOne) ? $this->m_operatorOne : false;
+		}
+		
+		public function OperatorTwo() {
+			return ($this->m_operatorTwo) ? $this->m_operatorTwo : false;
+		}
+		
+		public function ResultText() {
+			return ($this->m_resultText) ? $this->m_resultText : false;
+		}
+		
+		public function AssertType() {
+			return ($this->m_assertType) ? $this->m_assertType : false;
+		}
+		
+		/**
+		 * Returns a HTML formatted string.
+		 * 
+		 * @return:string
+		 */
+		public function ToHTMLString() {
+			$outcome = ($this->m_result) ? 'win' : 'fail';
+			$result = '<div class='.$outcome.'>';
+			$result .= "<h3>$this->m_testName - $this->m_assertType</h3>";
+			$result .= '</div>';
+			$result .= '<p>';
+			$result .= ($this->m_result) ? EVALUATION_SUCCESS : EVALUATION_FAILED;
+			$result .= '</p>';
+			$result .= '<p>';
+			if ($this->m_operatorOne) {
+				$result .= "<span class='value'>$this->m_operatorOne</span></p><p>";
+			}
+			if (!is_string($this->m_resultText)) {
+				$result .= ($this->m_resultText) ? ASSERT_SUCCESSFUL : ASSERT_FAILURE;
+			}
+			else {
+				$result .= $this->m_resultText;
+			}
+			if ($this->m_operatorTwo) {
+				$result .= '</p><p>'.$this->m_operatorTwo;
+			}
+			$result .= '</p>';
+			
+			return $result;
+		}
+		
+		/**
+		 * Return the test results as an associative array.
+		 * 
+		 * @return:array
+		 */
+		public function ToArray() {
+			$result = array(
+				self::TEST_NAME => $this->m_testName,
+				self::RESULT => $this->m_result,
+				self::ASSERT_TYPE => $this->m_assertType,
+				self::OPERATOR_ONE => $this->m_operatorOne,
+				self::OPERATOR_TWO => $this->m_operatorTwo,
+			);
+			if (!is_string($this->m_resultText)) {
+				$result[self::RESULT_TEXT] = ($this->m_resultText) ? ASSERT_SUCCESSFUL : ASSERT_FAILURE;
+			}
+			else {
+				$result[self::RESULT_TEXT] = $this->m_resultText;
+			}
+			
+			return $result;
+		}
+    }
+
+	/**
+	 * Class to manage test results in a suite.
+	 */
+    class TestSuite 
+    implements Iterator {
+    	
+    	private $m_suite;
+		private $m_success = 0;
+		private $m_fail = 0;
+		private $m_performed;
+		private $m_suitename;
+		private $m_position;
+    	
+    	public function __construct($suitename) {
+    		$this->m_suite = array();
+			$this->m_performed = date("Y-m-d - H:i:s (T)");
+			$this->m_suitename = $suitename;
+			$this->m_position = 0;
+    	}
+		
+		public function Add(TestResult $result) {
+			$this->m_suite[$this->m_position] = $result;
+			$this->next();
+			//var_dump($this->m_suite);
+			if ($result->Result())
+				$this->m_success++;
+			else
+				$this->m_fail++;
+		}
+		
+		public function SuccessPercent() {
+			return round(($this->m_success / count($this->m_suite)*100), 2);
+		}
+		
+		public function FailPercent() {
+			return round(($this->m_fail / count($this->m_suite)*100), 2);
+		}
+		
+		public function Performed() {
+			return $this->m_performed;
+		}
+		
+		public function Suitename() {
+			return $this->m_suitename;
+		}
+		
+		public function ToJSon() {
+			return json_encode($this->ToArray(), JSON_FORCE_OBJECT);
+		}
+		
+		public function ToArray() {
+			$result = array();
+			foreach ($this->m_suite as $test) {
+				$result[] = $test->ToArray();
+			}
+			return $result;
+		}
+		
+		//Iterator implementation.
+		function rewind() {
+	        $this->m_position = 0;
+	    }
+	
+	    function current() {
+	        return $this->m_suite[$this->m_position];
+	    }
+	
+	    function key() {
+	        return $this->m_position;
+	    }
+	
+	    function next() {
+	        $this->m_position++;
+	    }
+	
+	    function valid() {
+	        return isset($this->m_suite[$this->m_position]);
+	    }
     }

@@ -1,7 +1,7 @@
 Purple Kiwi Test Lite
 
 	Author: Emil Carlsson
-	Version: 0.8 beta
+	Version: 2.0
 	Copyright:2012
 	Contact: emilcarlsson81@gmail.com
 
