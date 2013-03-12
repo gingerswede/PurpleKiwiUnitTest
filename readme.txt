@@ -24,7 +24,7 @@ If you wish to a part of public releases, please contact me at emilcarlsson81@gm
 For current documentation, please visit http://test.code-monkey.se.
 
 This is the start up release of this small and humble testing framework. For more information
-about how to use it, please visit http://test.code-monkey.se/tutorial/.
+about how to use it, please visit http://test.code-monkey.se/category/tutorial/.
 
 If you enjoy this framework, please let other people know about it and spread it along. 
 It's published under the GPL, so feel free do do almost what you want with it. If you
